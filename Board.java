@@ -1,25 +1,82 @@
-package edu.cpp.cs.cs141.final_prog_assignment1;
+/**
+ * CS 141: Intro to Programming and Problem Solving
+ * Professor: Edwin Rodr&iacute;guez
+ *
+ * Programming Assignment #N
+ *
+ * <description-of-assignment>
+ * This is a team project in which we implement a 2D game containing
+ * various objects: rooms, power ups, player, and ninjas.
+ * The goal of this game is to have the user interact with different 
+ * entities in the program and to complete the objective of finding
+ * the briefcase.
+ * 
+ * Team Blank
+ * 	
+ * Justen Minamitani
+ * Saroj Poudel
+ * Steve Marrero
+ * Aaron Lim
+ * Koshi Huynh
+ * Jon Camarillo
+ */
 
+
+package edu.cpp.cs.cs141.final_prog_assignment;
 import java.util.Random;
+import java.io.Serializable;
 
-public class Board {
+
+/**
+ * This class represents the board that contains {@link Square} 
+ */
+public class Board implements Serializable{
 	private final int horizontal = 9;
 	private final int vertical = 9;
+	
+	/**
+	 * This field represents the board and the coordinates of the different
+	 * type of {@link Square}
+	 */
 	private Square[][] room = new Square[vertical][horizontal];
+	
 	private Random random = new Random();
 
-	private int[] briefcaseArrayX = {1,4,7};
-	private int[] briefcaseArrayY = {1,4,7};
-
-	private int briefcaseX;
-	private int briefcaseY;
-
-	private boolean debugMode = false;
-
 	/**
-	 * Creates board with room and briefcase.
+	 * this field represents the possible "x" coordinate of the briefcase
 	 */
-	Board() {
+	private int[] briefcaseArrayX = {1,4,7};
+	
+	/**
+	 * This field represents the possible "y" coordinates of the briefcase
+	 */
+	private int[] briefcaseArrayY = {1,4,7};
+	
+	/**
+	 * This field represents the "x" coordinates of the briefcase.
+	 */
+	private int briefcaseX;
+	
+	/**
+	 * This field represents the "y" coordinates of the briefcase.
+	 */
+	private int briefcaseY;
+	
+	/**
+	 * This field represents the state of the board visibility
+	 */
+	
+	private boolean debugMode = false;
+	
+	/**
+	 * This field represents if the room has the radar
+	 */
+	private boolean hasRadar;
+	
+	/**
+	 * This is the default constructor, when called it will create the board
+	 */
+	public Board() {
 		createBoard();
 	}
 
@@ -27,6 +84,7 @@ public class Board {
 	 * Creates board with room and briefcase.
 	 */
 	public void createBoard() {
+		
 		briefcaseX = briefcaseArrayX[random.nextInt(3)];
 		briefcaseY = briefcaseArrayY[random.nextInt(3)];
 
@@ -35,8 +93,8 @@ public class Board {
 				if((y==1 || y==4 || y==7) && (x==1 || x==4 || x==7)) {
 					if(x == briefcaseX && y == briefcaseY) {
 						room[x][y] = new Square(); //with briefcase
-
-						room[x][y].briefExist(debugMode);
+						
+						room[x][y].briefExist(debugMode, hasRadar);
 					}
 					else {
 						room[x][y] = new Square();//without briefcase
@@ -50,7 +108,10 @@ public class Board {
 	}
 
 	/**
-	 * 
+	 * This method returns the {@link Square} string at location x and y
+	 * @param x the x component of the {@link Square}
+	 * @param y the y component of the {@link Square}
+	 * @return the String display of the Square @ location
 	 */
 	public String displayBoard(int x, int y) {
 		if(debugMode) {
@@ -60,6 +121,12 @@ public class Board {
 			return room[x][y].display();
 	}	
 
+	/**
+	 * This method returns the {@link Square} object at location x and y of {@link #room}
+	 * @param x an integer that represents the the row
+	 * @param y an integer that represents the column
+	 * @return Square at the coordinates
+	 */
 	public Square at(int x, int y) {
 		try
 		{
@@ -70,38 +137,24 @@ public class Board {
 			return room[briefcaseX][briefcaseY]; // look at the briefcase room (used in senseSpy() in GameEngine)
 		}
 	}
-
-
+	
+	/**
+	 * This method will set the player on the board
+	 * @param player the character object representing the player
+	 * @param x an integer value that indicates the row
+	 * @param y an integer value that indicates the column
+	 */
 	public void set(Character player, int x, int y) {
-		//if(room[x][y].getRadar())
-		//	applyRadar();
 		room[x][y].setCharacter(player, x, y);
 		player.setX(x);
 		player.setY(y);
 	}
-
-	/*
-	private void applyRadar() {//------------------`
-		for(int i = 0; i < horizontal; i++) {
-			for(int j = 0; j < vertical; j++) { //check every room and reveal the room with the briefcase
-			 	if(room[i][j].getNinja())
-					room[i][j].makeVisible();
-				else if(room[i][j].getItem())
-					room[i][j].makeVisible();
-				else if(room[i][j].getBrief())
-					room[i][j].makeVisible();
-			}
-		}
-
-	}
-
-	 */
-	public void move(int x, int y) {	//contains old coordinates for spy
+	public void move(int x, int y) {	
 		room[x][y].playerMoved(x, y);
 	}
-
+	
 	public void setNinja(Character ninjas, int x, int y) {
-		room[x][y].setNinja(ninjas, x,y);
+			room[x][y].setNinja(ninjas, x,y);
 	}
 
 	public void set(Item radar, int x, int y) {
@@ -115,7 +168,7 @@ public class Board {
 	public int getBriefcaseX(){
 		return briefcaseX;
 	}
-
+	
 	/**
 	 * used in GameEngine's checkPlayerIsBriefcase function
 	 * @return y-coordinate of briefcase
@@ -123,17 +176,31 @@ public class Board {
 	public int getBriefcaseY(){
 		return briefcaseY;
 	}
-
-	public void debugMode() {
+	
+	/**
+	 * 
+	 * @param hasRadar
+	 */
+	public void debugMode(boolean hasRadar) {
 		debugMode = !debugMode;
-		room[briefcaseX][briefcaseY].briefExist(debugMode);
-
+		room[briefcaseX][briefcaseY].briefExist(debugMode, hasRadar);
+		
 	}
-
+	
+	/**
+	 * This function sets {@link #room} to empty state
+	 * @param x integer that is the x-coordinate
+	 * @param y integer that is the y-coordinate
+	 */
 	public void setEmpty( int x, int y) {
 		room[x][y].setEmpty();
 	}
-
+	
+	/**
+	 * This method removes the ninja from the board
+	 * @param x integer that is the x-coordinate of ninja
+	 * @param y integer that is the y-coordinate of ninja
+	 */
 	public void removeNinja(int x, int y) {
 		room[x][y].removeNinja();
 	}
